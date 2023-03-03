@@ -592,9 +592,17 @@ int main() {
 	SDL_Event event;
 
 	int firstPlay = 0;
-    int flagAnswer = 0;
+	int flagAnswer = 0;
+	int frameCount = 0;
+	int startTime = SDL_GetTicks();
+    int previousTime = SDL_GetTicks();
+	float fps = 0.0;
+    int fpsLimit = 60;
 
-    while (true) {
+	while (true) {
+
+		int currentTime = SDL_GetTicks();
+		
         if (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 break;
@@ -641,6 +649,22 @@ int main() {
                 }
             }
         }
+
+		previousTime = SDL_GetTicks();
+
+		printf("\n %d", (1000 / fpsLimit) - (currentTime - previousTime));
+
+		Sleep((1000 / fpsLimit) - (currentTime - previousTime));
+
+		frameCount++;
+		if (currentTime > startTime + 1000) {
+			int elapsedTime = currentTime - startTime;
+			fps = ((float)frameCount / elapsedTime) * 1000.0;
+			printf("FPS: %.2f\n", fps);
+			frameCount = 0;
+			startTime = currentTime;
+		}
+
     }
 
     // Libérer la mémoire
