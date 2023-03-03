@@ -1,5 +1,3 @@
-
-
 #include "SDL.h"
 #undef main
 #include <iostream>
@@ -9,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <SDL_image.h>
 
 #define WINDOW_WIDTH 750
 #define WINDOW_HEIGHT 750
@@ -599,6 +598,9 @@ int main() {
 	float fps = 0.0;
     int fpsLimit = 60;
 
+
+
+
 	while (true) {
 
 		int currentTime = SDL_GetTicks();
@@ -651,8 +653,6 @@ int main() {
         }
 
 		previousTime = SDL_GetTicks();
-
-		printf("\n %d", (1000 / fpsLimit) - (currentTime - previousTime));
 
 		Sleep((1000 / fpsLimit) - (currentTime - previousTime));
 
