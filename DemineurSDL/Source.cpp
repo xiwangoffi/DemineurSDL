@@ -1,4 +1,4 @@
-#include "SDL.h"
+ï»¿#include "SDL.h"
 #undef main
 #include <iostream>
 #include <stdlib.h>
@@ -39,29 +39,192 @@ void yellow();
 void blue();
 void setColor(int* board, int i);
 
+
+void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
+	int SQUARE_SIZE = 50;
+
+	SDL_Window* window = NULL;
+	SDL_Renderer* renderer = NULL;
+	//bool board[WINDOW_WIDTH / SQUARE_SIZE][WINDOW_HEIGHT / SQUARE_SIZE] = { 0 };
+
+	// Initialiser SDL
+	SDL_Init(SDL_INIT_VIDEO);
+
+	IMG_Init(IMG_INIT_JPG);
+    
+	// Crï¿½er la fenï¿½tre
+	if (size > 15) {
+		SQUARE_SIZE = 30;
+	}
+	SDL_Rect rect = { 0, 0, SQUARE_SIZE, SQUARE_SIZE };
+	window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, size * SQUARE_SIZE, size * SQUARE_SIZE, SDL_WINDOW_SHOWN);
+
+
+	// Creer le rendu pour dessiner
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Surface* imageB1[10] = { IMG_Load("Pilier1.bmp"), IMG_Load("Pilier2.bmp"), IMG_Load("Pilier3.bmp"), IMG_Load("Pilier4.bmp"), IMG_Load("Pilier5.bmp"), IMG_Load("Pilier6.bmp"), IMG_Load("Pilier7.bmp"), IMG_Load("Pilier8.bmp"), IMG_Load("flagB1.bmp"), IMG_Load("mineB1.bmp") };
+	SDL_Surface* imageB2[10] = { IMG_Load("Pilier1_2.bmp"), IMG_Load("Pilier2_2.bmp"), IMG_Load("Pilier3_2.bmp"), IMG_Load("Pilier4_2.bmp"), IMG_Load("Pilier5_2.bmp"), IMG_Load("Pilier6_2.bmp"), IMG_Load("Pilier7_2.bmp"), IMG_Load("Pilier8_2.bmp"), IMG_Load("flagB2.bmp"), IMG_Load("mineB2.bmp") };
+
+
+
+	// Changer la couleur du fond en blanc
+	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_RenderClear(renderer);
+
+	// Dessiner le damier
+	for (int x = 0; x < size * SQUARE_SIZE / SQUARE_SIZE; x++) {
+		for (int y = 0; y < size * SQUARE_SIZE / SQUARE_SIZE; y++) {
+			rect.x = x * SQUARE_SIZE;
+			rect.y = y * SQUARE_SIZE;
+
+			if ((x + y) % 2 == 0) {
+				SDL_SetRenderDrawColor(renderer, 162, 209, 73, 255);
+			}
+			else {
+				SDL_SetRenderDrawColor(renderer, 170, 215, 81, 255);
+			}
+
+			SDL_RenderFillRect(renderer, &rect);
+
+			// Initialiser le damier avec toutes les cases visibles
+			//board[x][y] = true;
+		}
+	}
+
+	// Afficher le rendu
+	SDL_RenderPresent(renderer);
+
+	// Boucle principale
+	SDL_Event event;
+
+	int firstPlay = 0;
+	int flagAnswer = 0;
+	int frameCount = 0;
+	int startTime = SDL_GetTicks();
+	int previousTime = SDL_GetTicks();
+	float fps = 0.0;
+	int fpsLimit = 60;
+
+
+
+
+	while (true) {
+
+		int currentTime = SDL_GetTicks();
+
+		if (SDL_PollEvent(&event)) {
+			if (event.type == SDL_QUIT) {
+				break;
+			}
+			else if (event.type == SDL_MOUSEBUTTONDOWN) {
+				int x = event.button.x / SQUARE_SIZE + 1;
+				int y = event.button.y / SQUARE_SIZE + 1;
+				if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13) {
+
+					if (firstPlay == 0) {
+						bombCreation(trappedBoard, x, y, size, nbBomb);
+						firstPlay = 1;
+					}
+					else {
+						if (event.button.button == SDL_BUTTON_RIGHT) {
+							flagAnswer = 1;
+						}
+						else {
+							flagAnswer = 0;
+						}
+					}
+
+					playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
+					showArea(trappedBoard, playableBoard, size);
+					printBoard(playableBoard, size);
+					printBoard(trappedBoard, size);
+
+					for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
+						for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
+							rect.x = x2 * SQUARE_SIZE;
+							rect.y = y2 * SQUARE_SIZE;
+                            if(playableBoard[(x2 + (y2 - 1) * size) + size] == 10){
+								if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
+
+									SDL_SetRenderDrawColor(renderer, 215, 184, 153, 255);
+									SDL_RenderFillRect(renderer, &rect);
+									SDL_RenderPresent(renderer);
+								}
+								else if (playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
+									SDL_SetRenderDrawColor(renderer, 229, 194, 159, 255);
+									SDL_RenderFillRect(renderer, &rect);
+									SDL_RenderPresent(renderer);
+								}
+                            }
+
+                            for (int i = 0; i < 8; i++)
+                            {
+								if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] == i+1) {
+									SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, 50, 50 };
+									SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[i]);
+									SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+									SDL_RenderPresent(renderer);
+								}
+								else if (playableBoard[(x2 + (y2 - 1) * size) + size] == i+1) {
+									SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, 50, 50 };
+									SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[i]);
+									SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+									SDL_RenderPresent(renderer);
+								}
+                            }
+                            
+						}
+					}
+
+				}
+			}
+		}
+
+		previousTime = SDL_GetTicks();
+
+		Sleep((1000 / fpsLimit) - (currentTime - previousTime));
+
+		frameCount++;
+		if (currentTime > startTime + 1000) {
+			int elapsedTime = currentTime - startTime;
+			fps = ((float)frameCount / elapsedTime) * 1000.0;
+			printf("FPS: %.2f\n", fps);
+			frameCount = 0;
+			startTime = currentTime;
+		}
+
+	}
+
+	// Libï¿½rer la mï¿½moire
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	IMG_Quit();
+	SDL_Quit();
+}
+
 //handles any events that SDL noticed.
 void handleEvents() {
-	//the only event we'll check is the  SDL_QUIT event.
-	SDL_Event event;
-	SDL_PollEvent(&event);
+    //the only event we'll check is the  SDL_QUIT event.
+    SDL_Event event;
+    SDL_PollEvent(&event);
 
 
-	switch (event.type) {
-	case SDL_QUIT:
-		isRunning = false;
-		break;
-	default:
-		break;
-	}
+    switch (event.type) {
+    case SDL_QUIT:
+        isRunning = false;
+        break;
+    default:
+        break;
+    }
 }
 
 //simple render function
 void render() {
-	SDL_SetRenderDrawColor(renderer, 121, 121, 121, 255);
-	SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(renderer, 121, 121, 121, 255);
+    SDL_RenderClear(renderer);
 
-	//your stuff to render would typically go here.
-	SDL_RenderPresent(renderer);
+    //your stuff to render would typically go here.
+    SDL_RenderPresent(renderer);
 }
 
 //simple update function
@@ -113,14 +276,14 @@ void setColor(int* board, int i) {
 }
 
 int isInt() {
-    //Vérifie si l'entrèe est un nombre entier
+    //Vï¿½rifie si l'entrï¿½e est un nombre entier
     char entree[100];
     int nombre;
     char* fin;
     while (fgets(entree, 100, stdin) != NULL) {
-        // Supprimer le caractère de retour à la ligne à la fin de l'entrée
+        // Supprimer le caractï¿½re de retour ï¿½ la ligne ï¿½ la fin de l'entrï¿½e
         entree[strcspn(entree, "\n")] = '\0';
-        // Vérifier si l'entrée est un nombre entier valide
+        // Vï¿½rifier si l'entrï¿½e est un nombre entier valide
         if (isdigit(entree[0]) || entree[0] == '+' || entree[0] == '-') {
             nombre = strtol(entree, &fin, 10);
             if (*fin == '\0') {
@@ -134,16 +297,16 @@ int isInt() {
 }
 
 void printNumbers(int clue) {
-    if (clue == 0) {  //Affiche vide dans le coin supérieur gauche
+    if (clue == 0) {  //Affiche vide dans le coin supï¿½rieur gauche
         printf("\n   ");
     }
-    else if (clue == 1) { // Affiche l'indice 1 à gauche
+    else if (clue == 1) { // Affiche l'indice 1 ï¿½ gauche
         printf("\n  %d", clue);
     }
-    else if (clue < 10) { // Affiche l'indice - 1 et retourne à la ligne pour afficher le suivant (si indice < 10)
+    else if (clue < 10) { // Affiche l'indice - 1 et retourne ï¿½ la ligne pour afficher le suivant (si indice < 10)
         printf(" %d\n  %d", clue - 1, clue);
     }
-    else if (clue >= 10) { // Affiche l'indice - 1 et retourne à la ligne pour afficher le suivant (si indice > 10)
+    else if (clue >= 10) { // Affiche l'indice - 1 et retourne ï¿½ la ligne pour afficher le suivant (si indice > 10)
         printf(" %d\n %d", clue - 1, clue);
     }
 }
@@ -154,12 +317,12 @@ void bombCreation(int* trappedBoard, int x, int y, int size, int nbBomb) {
     srand(time(NULL));
 
     //Random Creation Bomb
-    for (int i = 1; i <= nbBomb; i++) { // boucle pour la création de bombes
+    for (int i = 1; i <= nbBomb; i++) { // boucle pour la crï¿½ation de bombes
         random = rand() % (size * size);
-        if ((random >= (x + (y - 1) * size) - 2 && random <= x + (y - 1) * size) || (random >= (x + (y - 1) * size) - 2 - size && random <= (x + (y - 1) * size) - size) || (random >= (x + (y - 1) * size) - 2 + size && random <= (x + (y - 1) * size) + size)) { // vérifie si la bombe peut être poser a coter de la ou le joueur veut joueur
+        if ((random >= (x + (y - 1) * size) - 2 && random <= x + (y - 1) * size) || (random >= (x + (y - 1) * size) - 2 - size && random <= (x + (y - 1) * size) - size) || (random >= (x + (y - 1) * size) - 2 + size && random <= (x + (y - 1) * size) + size)) { // vï¿½rifie si la bombe peut ï¿½tre poser a coter de la ou le joueur veut joueur
             random += 3;
         }
-        if (trappedBoard[random] == 11) { // vérifie si la bombe se pose sur une autre
+        if (trappedBoard[random] == 11) { // vï¿½rifie si la bombe se pose sur une autre
             i--;
         }
         trappedBoard[random] = 11;// pose la mine
@@ -216,7 +379,7 @@ void bombCreation(int* trappedBoard, int x, int y, int size, int nbBomb) {
 
 void showArea(int* trappedBoard, int* playableBoard, int size) {
     int isO = 1;
-    while (isO == 1) { // S'il y a des O a vérifier
+    while (isO == 1) { // S'il y a des O a vï¿½rifier
         isO = 0;
         for (int i = 0; i < size * size; i++)
         {
@@ -271,7 +434,7 @@ void showArea(int* trappedBoard, int* playableBoard, int size) {
 
 void showMine(int* trappedBoard, int* playableBoard, int size) {
     for (int i = 0; i < size * size; i++) {
-        if (trappedBoard[i] == 11) { // S'il y a une mine, ré-affiche le tableau avec cette mine avec un délai
+        if (trappedBoard[i] == 11) { // S'il y a une mine, rï¿½-affiche le tableau avec cette mine avec un dï¿½lai
             Sleep(400);
             system("cls");
             playableBoard[i] = 11;
@@ -284,14 +447,14 @@ void prePlay(int* trappedBoard, int* playableBoard, int size, int nbBomb) {
     int x;
     int y;
 
-    //quémande la position a laquelle on veut jouer
+    //quï¿½mande la position a laquelle on veut jouer
 
     printf("\nIndiquer une colonne entre (1 et %d): ", size);
     x = isInt();
     printf("\nIndiquer une ligne entre (1 et %d): ", size);
     y = isInt();
 
-    while (x > size || x < 1 || y > size || y < 1) { // Vérifie si les valeurs introduites entrent dans le tableau
+    while (x > size || x < 1 || y > size || y < 1) { // Vï¿½rifie si les valeurs introduites entrent dans le tableau
         printf("\nValeurs non valide\n");
         printf("\nIndiquer une colonne entre (1 et %d): ", size);
         x = isInt();
@@ -299,13 +462,13 @@ void prePlay(int* trappedBoard, int* playableBoard, int size, int nbBomb) {
         y = isInt();
     }
 
-    bombCreation(trappedBoard, x, y, size, nbBomb); // Créer les bombes
+    bombCreation(trappedBoard, x, y, size, nbBomb); // Crï¿½er les bombes
 
 
 
-    playableBoard[(x + (y - 1) * size) - 1] = 10; // Joue à la position quémandée
+    playableBoard[(x + (y - 1) * size) - 1] = 10; // Joue ï¿½ la position quï¿½mandï¿½e
 
-    showArea(trappedBoard, playableBoard, size); // Découvre les cases vides
+    showArea(trappedBoard, playableBoard, size); // Dï¿½couvre les cases vides
 
     //Boards print
     system("cls");
@@ -322,7 +485,7 @@ int play(int* trappedBoard, int* playableBoard, int size, int nbBomb) {
 
     int answer = 0;
 
-    //quémande la position au joueur
+    //quï¿½mande la position au joueur
 
     printf("\nVoulez-vous mettre un drapeau ? yes = 1 or no = 0\n");
     answer = isInt();
@@ -332,7 +495,7 @@ int play(int* trappedBoard, int* playableBoard, int size, int nbBomb) {
     printf("\nIndiquer une ligne entre (1 et %d): ", size);
     y = isInt();
 
-    while (x > size || x < 1 || y > size || y < 1) { // Vérifie si les valeurs introduites entrent dans le tableau
+    while (x > size || x < 1 || y > size || y < 1) { // Vï¿½rifie si les valeurs introduites entrent dans le tableau
         printf("\nValeurs non valide\n");
         printf("\nIndiquer une colonne entre (1 et %d): ", size);
         x = isInt();
@@ -341,9 +504,9 @@ int play(int* trappedBoard, int* playableBoard, int size, int nbBomb) {
     }
 
 
-    isBomb = playVerif(trappedBoard, playableBoard, x, y, answer, size, nbBomb); // Vérifie si on peut jouer a cette position
+    isBomb = playVerif(trappedBoard, playableBoard, x, y, answer, size, nbBomb); // Vï¿½rifie si on peut jouer a cette position
 
-    showArea(trappedBoard, playableBoard, size); // Découvre les cases vides
+    showArea(trappedBoard, playableBoard, size); // Dï¿½couvre les cases vides
 
     //Boards print
     system("cls");
@@ -357,7 +520,7 @@ void printBoard(int* board, int size) {
     int divide = 0;
     for (int i = 0; i < size * size; i++) {
 
-        if (i == 0) { // si on est au début de la boucle affiche les chiffres indicatifs du haut
+        if (i == 0) { // si on est au dï¿½but de la boucle affiche les chiffres indicatifs du haut
             for (int j = 0; j <= size; j++) {
                 if (j == 0) {
                     printf("   ");
@@ -372,7 +535,7 @@ void printBoard(int* board, int size) {
             }
         }
 
-        if (i / size == divide) { // Si on est à la fin d'une ligne, affiche les nombres indicatifs latéraux et la case à côté
+        if (i / size == divide) { // Si on est ï¿½ la fin d'une ligne, affiche les nombres indicatifs latï¿½raux et la case ï¿½ cï¿½tï¿½
             divide++;
             if (board[i] == 10) {
                 printNumbers(divide);
@@ -454,11 +617,11 @@ int playVerif(int* trappedBoard, int* playableBoard, int x, int y, int flag, int
         playableBoard[(x + (y - 1) * size) - 1] = 12;
         for (int i = 0; i < size * size; i++)
         {
-            if (playableBoard[i] == 12 || playableBoard[i] == 13) { // Vérifie le nombre de drapeau et de cases non découvertes
+            if (playableBoard[i] == 12 || playableBoard[i] == 13) { // Vï¿½rifie le nombre de drapeau et de cases non dï¿½couvertes
                 victory++;
             }
         }
-        if (victory == nbBomb) { // S'il y a autant de drapeaux que de cases non découvertes s'est gagner
+        if (victory == nbBomb) { // S'il y a autant de drapeaux que de cases non dï¿½couvertes s'est gagner
             return 2;
         }
         else { // sinon rien
@@ -478,11 +641,11 @@ int playVerif(int* trappedBoard, int* playableBoard, int x, int y, int flag, int
             playableBoard[(x + (y - 1) * size) - 1] = trappedBoard[(x + (y - 1) * size) - 1];
             for (int i = 0; i < size * size; i++)
             {
-                if (playableBoard[i] == 12 || playableBoard[i] == 13) { // Vérifie le nombre de drapeau et de cases non découvertes
+                if (playableBoard[i] == 12 || playableBoard[i] == 13) { // Vï¿½rifie le nombre de drapeau et de cases non dï¿½couvertes
                     victory++;
                 }
             }
-            if (victory == nbBomb) { // S'il y a autant de drapeaux que de cases non découvertes s'est gagner
+            if (victory == nbBomb) { // S'il y a autant de drapeaux que de cases non dï¿½couvertes s'est gagner
                 return 2;
             }
             else { // sinon rien
@@ -507,17 +670,17 @@ int main() {
     int size = 0;
     int nbBomb = 0;
 
-    // Quémande la taille du tableau au joueur
+    // Quï¿½mande la taille du tableau au joueur
 
     printf("Taille entre 6 et 30 (un entier pls): ");
     size = isInt();
 
-    while (size < 6 || size > 30) { // Vérifie si la valeur input est < à 5 ou > à 30
+    while (size < 6 || size > 30) { // Vï¿½rifie si la valeur input est < ï¿½ 5 ou > ï¿½ 30
         printf("\nValeur non valide \nTaille entre 6 et 30 (un entier pls): ");
         size = isInt();
     }
 
-    // Quémande le nombres de bombes
+    // Quï¿½mande le nombres de bombes
 
     printf("Nombres de bombes entre 1 et %d (un entier pls): ", (size * size) - 10);
     nbBomb = isInt();
@@ -527,7 +690,7 @@ int main() {
         nbBomb = isInt();
     }
 
-    // Créé le tableau
+    // Crï¿½ï¿½ le tableau
 
     int* playableBoard = (int*)malloc(sizeof(int) * (size * size));
     int* trappedBoard = (int*)malloc(sizeof(int) * (size * size));
@@ -539,144 +702,13 @@ int main() {
         playableBoard[i] = 13;
     }
 
+    SDL(size, trappedBoard, playableBoard, nbBomb);
 
-    int SQUARE_SIZE = 50;
-
-    SDL_Window* window = NULL;
-    SDL_Renderer* renderer = NULL;
-    //bool board[WINDOW_WIDTH / SQUARE_SIZE][WINDOW_HEIGHT / SQUARE_SIZE] = { 0 };
-
-    // Initialiser SDL
-    SDL_Init(SDL_INIT_VIDEO);
-
-    // Créer la fenêtre
-    if (size > 15) {
-        SQUARE_SIZE = 30;
-    }
-    SDL_Rect rect = { 0, 0, SQUARE_SIZE, SQUARE_SIZE };
-    window = SDL_CreateWindow("Minesweeper", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, size * SQUARE_SIZE, size * SQUARE_SIZE, SDL_WINDOW_SHOWN);
-
-
-    // Créer le rendu pour dessiner
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-    // Changer la couleur du fond en blanc
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderClear(renderer);
-
-    // Dessiner le damier
-    for (int x = 0; x < size * SQUARE_SIZE / SQUARE_SIZE; x++) {
-        for (int y = 0; y < size * SQUARE_SIZE / SQUARE_SIZE; y++) {
-            rect.x = x * SQUARE_SIZE;
-            rect.y = y * SQUARE_SIZE;
-
-            if ((x + y) % 2 == 0) {
-                SDL_SetRenderDrawColor(renderer, 162, 209, 73, 255);
-            }
-            else {
-                SDL_SetRenderDrawColor(renderer, 170, 215, 81, 255);
-            }
-
-            SDL_RenderFillRect(renderer, &rect);
-
-            // Initialiser le damier avec toutes les cases visibles
-            //board[x][y] = true;
-        }
-    }
-
-    // Afficher le rendu
-    SDL_RenderPresent(renderer);
-
-    // Boucle principale
-	SDL_Event event;
-
-	int firstPlay = 0;
-	int flagAnswer = 0;
-	int frameCount = 0;
-	int startTime = SDL_GetTicks();
-    int previousTime = SDL_GetTicks();
-	float fps = 0.0;
-    int fpsLimit = 60;
-
-
-
-
-	while (true) {
-
-		int currentTime = SDL_GetTicks();
-		
-        if (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                break;
-            }
-            else if (event.type == SDL_MOUSEBUTTONDOWN) {
-                int x = event.button.x / SQUARE_SIZE + 1;
-                int y = event.button.y / SQUARE_SIZE + 1;
-                if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13) {
-
-                    if (firstPlay == 0) {
-                        bombCreation(trappedBoard, x, y, size, nbBomb);
-                        firstPlay = 1;
-                    }else{
-                        if(event.button.button == SDL_BUTTON_RIGHT){
-                            flagAnswer = 1;
-                        }else{
-                            flagAnswer = 0;
-                        }
-                    }
-
-					playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
-					showArea(trappedBoard, playableBoard, size);
-					printBoard(playableBoard, size);
-					printBoard(trappedBoard, size);
-
-                    for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
-                        for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
-                            rect.x = x2 * SQUARE_SIZE;
-                            rect.y = y2 * SQUARE_SIZE;
-                            if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
-                                SDL_SetRenderDrawColor(renderer, 215, 184, 153, 255);
-                                SDL_RenderFillRect(renderer, &rect);
-                                SDL_RenderPresent(renderer);
-                            }
-                            else if (playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
-                                SDL_SetRenderDrawColor(renderer, 229, 194, 159, 255);
-                                SDL_RenderFillRect(renderer, &rect);
-                                SDL_RenderPresent(renderer);
-                            }
-
-                        }
-                    }
-
-                }
-            }
-        }
-
-		previousTime = SDL_GetTicks();
-
-		Sleep((1000 / fpsLimit) - (currentTime - previousTime));
-
-		frameCount++;
-		if (currentTime > startTime + 1000) {
-			int elapsedTime = currentTime - startTime;
-			fps = ((float)frameCount / elapsedTime) * 1000.0;
-			printf("FPS: %.2f\n", fps);
-			frameCount = 0;
-			startTime = currentTime;
-		}
-
-    }
-
-    // Libérer la mémoire
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
-    // Première fonction pour jouer
+    // Premiï¿½re fonction pour jouer
 
     prePlay(trappedBoard, playableBoard, size, nbBomb);
 
-    while (booleanLoose == 0) { // S'il n'y a rien, continué
+    while (booleanLoose == 0) { // S'il n'y a rien, continuï¿½
         booleanLoose = play(trappedBoard, playableBoard, size, nbBomb);
     }
     if (booleanLoose == 2) { // Si gagner s'est gagner

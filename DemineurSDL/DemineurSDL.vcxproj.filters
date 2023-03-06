@@ -20,7 +20,64 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Downloads\mine.bmp">
+    <Image Include="mineB1.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="mineB2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier1.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier1_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier6_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier7.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier7_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier8.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier8_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier3.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier3_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier4.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier4_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier5.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier5_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier6.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Pilier2_2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="flagB1.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="flagB2.bmp">
       <Filter>Fichiers sources</Filter>
     </Image>
   </ItemGroup>
