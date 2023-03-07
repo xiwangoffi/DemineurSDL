@@ -80,5 +80,11 @@
     <Image Include="flagB2.bmp">
       <Filter>Fichiers sources</Filter>
     </Image>
+    <Image Include="game_over.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="win.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
   </ItemGroup>
 </Project>

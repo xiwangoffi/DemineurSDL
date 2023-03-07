@@ -21,6 +21,7 @@ void handleEvents();
 void update();
 void render();
 
+void reset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* playableBoard, int nbBomb, SDL_Renderer* renderer);
 void printNumbers(int clue);
 void printBoard(int* board, int size);
 int playVerif(int* trappedBoard, int* playableBoard, int x, int y, int flag, int size, int nbBomb);
@@ -41,7 +42,7 @@ void setColor(int* board, int i);
 
 
 void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
-	int SQUARE_SIZE = 50;
+	int SQUARE_SIZE = 60;
 
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
@@ -62,8 +63,10 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 
 	// Creer le rendu pour dessiner
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Surface* imageB1[10] = { IMG_Load("Pilier1.bmp"), IMG_Load("Pilier2.bmp"), IMG_Load("Pilier3.bmp"), IMG_Load("Pilier4.bmp"), IMG_Load("Pilier5.bmp"), IMG_Load("Pilier6.bmp"), IMG_Load("Pilier7.bmp"), IMG_Load("Pilier8.bmp"), IMG_Load("flagB1.bmp"), IMG_Load("mineB1.bmp") };
-	SDL_Surface* imageB2[10] = { IMG_Load("Pilier1_2.bmp"), IMG_Load("Pilier2_2.bmp"), IMG_Load("Pilier3_2.bmp"), IMG_Load("Pilier4_2.bmp"), IMG_Load("Pilier5_2.bmp"), IMG_Load("Pilier6_2.bmp"), IMG_Load("Pilier7_2.bmp"), IMG_Load("Pilier8_2.bmp"), IMG_Load("flagB2.bmp"), IMG_Load("mineB2.bmp") };
+	SDL_Surface* gameOver = IMG_Load("game_over.bmp");
+	SDL_Surface* winImg = IMG_Load("win.bmp");
+    SDL_Surface* imageB1[10] = { IMG_Load("Pilier1.bmp"), IMG_Load("Pilier2.bmp"), IMG_Load("Pilier3.bmp"), IMG_Load("Pilier4.bmp"), IMG_Load("Pilier5.bmp"), IMG_Load("Pilier6.bmp"), IMG_Load("Pilier7.bmp"), IMG_Load("Pilier8.bmp"), IMG_Load("flagB2.bmp"), IMG_Load("mineB1.bmp") };
+	SDL_Surface* imageB2[10] = { IMG_Load("Pilier1_2.bmp"), IMG_Load("Pilier2_2.bmp"), IMG_Load("Pilier3_2.bmp"), IMG_Load("Pilier4_2.bmp"), IMG_Load("Pilier5_2.bmp"), IMG_Load("Pilier6_2.bmp"), IMG_Load("Pilier7_2.bmp"), IMG_Load("Pilier8_2.bmp"), IMG_Load("flagB1.bmp"), IMG_Load("mineB2.bmp") };
 
 
 
@@ -86,8 +89,6 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 
 			SDL_RenderFillRect(renderer, &rect);
 
-			// Initialiser le damier avec toutes les cases visibles
-			//board[x][y] = true;
 		}
 	}
 
@@ -104,6 +105,9 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 	int previousTime = SDL_GetTicks();
 	float fps = 0.0;
 	int fpsLimit = 60;
+	int loose = 0;
+	int win = 0;
+	bool KEYS[322];
 
 
 
@@ -112,76 +116,142 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 
 		int currentTime = SDL_GetTicks();
 
+        
+
 		if (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				break;
+			}else if ((loose == 1 || win == 2) && event.key.keysym.sym == SDLK_SPACE) {
+                reset(size, SQUARE_SIZE, rect, trappedBoard, playableBoard, nbBomb, renderer);
+				loose = 0;
+				win = 0;
+				firstPlay = 0;
+
 			}
 			else if (event.type == SDL_MOUSEBUTTONDOWN) {
 				int x = event.button.x / SQUARE_SIZE + 1;
 				int y = event.button.y / SQUARE_SIZE + 1;
-				if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13) {
 
-					if (firstPlay == 0) {
-						bombCreation(trappedBoard, x, y, size, nbBomb);
-						firstPlay = 1;
-					}
-					else {
-						if (event.button.button == SDL_BUTTON_RIGHT) {
-							flagAnswer = 1;
+				if (event.button.button == SDL_BUTTON_RIGHT && firstPlay == 1 && loose == 0 && win != 2) {
+					flagAnswer = 1;
+					if (flagAnswer == 1) {
+						rect.x = (x - 1) * SQUARE_SIZE;
+						rect.y = (y - 1) * SQUARE_SIZE;
+						if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13 && (x + y) % 2 == 0) {
+							SDL_Rect dstrect = { (x - 1) * SQUARE_SIZE, (y - 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+							SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[8]);
+							SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+							SDL_RenderPresent(renderer);
+							playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
 						}
-						else {
-							flagAnswer = 0;
+						else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13) {
+							SDL_Rect dstrect = { (x - 1) * SQUARE_SIZE, (y - 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+							SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[8]);
+							SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+							SDL_RenderPresent(renderer);
+							playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
 						}
+						else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 12 && (x + y) % 2 == 0) {
+							SDL_SetRenderDrawColor(renderer, 162, 209, 73, 255);
+							SDL_RenderFillRect(renderer, &rect);
+							SDL_RenderPresent(renderer);
+                            playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] = 13;
+						}
+						else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 12) {
+							SDL_SetRenderDrawColor(renderer, 170, 215, 81, 255);
+							SDL_RenderFillRect(renderer, &rect);
+							SDL_RenderPresent(renderer);
+							playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] = 13;
+						}
+						printBoard(playableBoard, size);
+						printBoard(trappedBoard, size);
 					}
+				}
 
-					playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
-					showArea(trappedBoard, playableBoard, size);
-					printBoard(playableBoard, size);
-					printBoard(trappedBoard, size);
+				else {
+					flagAnswer = 0;
+				}
 
-					for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
-						for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
-							rect.x = x2 * SQUARE_SIZE;
-							rect.y = y2 * SQUARE_SIZE;
-                            if(playableBoard[(x2 + (y2 - 1) * size) + size] == 10){
-								if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
 
-									SDL_SetRenderDrawColor(renderer, 215, 184, 153, 255);
-									SDL_RenderFillRect(renderer, &rect);
-									SDL_RenderPresent(renderer);
-								}
-								else if (playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
-									SDL_SetRenderDrawColor(renderer, 229, 194, 159, 255);
-									SDL_RenderFillRect(renderer, &rect);
-									SDL_RenderPresent(renderer);
-								}
+
+                if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13 && event.button.button != SDL_BUTTON_RIGHT && loose == 0 &&  win != 2) {
+
+                    if (firstPlay == 0) {
+                        bombCreation(trappedBoard, x, y, size, nbBomb);
+                        firstPlay = 1;
+                    }
+
+                    win = playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
+                    showArea(trappedBoard, playableBoard, size);
+                    printBoard(playableBoard, size);
+                    printBoard(trappedBoard, size);
+
+                    if (trappedBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 11) {
+                        loose = 1;
+                        for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
+                            for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
+                                if (trappedBoard[(x2 + (y2 - 1) * size) + size] == 11) {
+                                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+                                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[9]);
+                                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+                                    SDL_RenderPresent(renderer);
+                                }
+                            }
+                        }
+                    }
+                    for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
+                        for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
+                            rect.x = x2 * SQUARE_SIZE;
+                            rect.y = y2 * SQUARE_SIZE;
+                            if (playableBoard[(x2 + (y2 - 1) * size) + size] == 10 && flagAnswer == 0) {
+                                if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
+
+                                    SDL_SetRenderDrawColor(renderer, 215, 184, 153, 255);
+                                    SDL_RenderFillRect(renderer, &rect);
+                                    SDL_RenderPresent(renderer);
+                                }
+                                else if (playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
+                                    SDL_SetRenderDrawColor(renderer, 229, 194, 159, 255);
+                                    SDL_RenderFillRect(renderer, &rect);
+                                    SDL_RenderPresent(renderer);
+                                }
                             }
 
                             for (int i = 0; i < 8; i++)
                             {
-								if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] == i+1) {
-									SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, 50, 50 };
-									SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[i]);
-									SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-									SDL_RenderPresent(renderer);
-								}
-								else if (playableBoard[(x2 + (y2 - 1) * size) + size] == i+1) {
-									SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, 50, 50 };
-									SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[i]);
-									SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-									SDL_RenderPresent(renderer);
-								}
+                                if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] == i + 1) {
+                                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+                                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[i]);
+                                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+                                    SDL_RenderPresent(renderer);
+                                }
+                                else if (playableBoard[(x2 + (y2 - 1) * size) + size] == i + 1) {
+                                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+                                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[i]);
+                                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+                                    SDL_RenderPresent(renderer);
+                                }
                             }
-                            
-						}
-					}
 
+                        }
+                    }
+				}
+                if (loose == 1){
+					SDL_Rect dstrect = { size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 1.5, size * SQUARE_SIZE / 1.5 };
+					SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, gameOver);
+					SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+					SDL_RenderPresent(renderer);
+				}else if (win == 2) {
+					SDL_Rect dstrect = { size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 1.5, size * SQUARE_SIZE / 1.5 };
+					SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, winImg);
+					SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+					SDL_RenderPresent(renderer);
 				}
 			}
 		}
 
 		previousTime = SDL_GetTicks();
-
+        
 		Sleep((1000 / fpsLimit) - (currentTime - previousTime));
 
 		frameCount++;
@@ -200,6 +270,31 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 	SDL_DestroyWindow(window);
 	IMG_Quit();
 	SDL_Quit();
+}
+
+void reset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* playableBoard, int nbBomb, SDL_Renderer* renderer){
+	for (int i = 0; i < size * size; i++) {
+		trappedBoard[i] = 10;
+		playableBoard[i] = 13;
+	}
+	//int SDL_RenderClear(SDL_Renderer * renderer);
+	for (int x = 0; x < size * SQUARE_SIZE / SQUARE_SIZE; x++) {
+		for (int y = 0; y < size * SQUARE_SIZE / SQUARE_SIZE; y++) {
+			rect.x = x * SQUARE_SIZE;
+			rect.y = y * SQUARE_SIZE;
+
+			if ((x + y) % 2 == 0) {
+				SDL_SetRenderDrawColor(renderer, 162, 209, 73, 255);
+			}
+			else {
+				SDL_SetRenderDrawColor(renderer, 170, 215, 81, 255);
+			}
+
+			SDL_RenderFillRect(renderer, &rect);
+			SDL_RenderPresent(renderer);
+
+		}
+	}
 }
 
 //handles any events that SDL noticed.
