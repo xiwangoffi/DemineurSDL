@@ -136,6 +136,7 @@
     <Image Include="flagB1.bmp" />
     <Image Include="flagB2.bmp" />
     <Image Include="game_over.bmp" />
+    <Image Include="logo.ico" />
     <Image Include="mineB1.bmp" />
     <Image Include="mineB2.bmp" />
     <Image Include="Pilier1.bmp" />
@@ -155,6 +156,11 @@
     <Image Include="Pilier8.bmp" />
     <Image Include="Pilier8_2.bmp" />
     <Image Include="win.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\..\..\Downloads\sourisBleu.wav" />
+    <Media Include="..\..\..\Downloads\totemMinecraft.wav" />
+    <Media Include="trumpEtte.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

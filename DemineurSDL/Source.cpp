@@ -1,4 +1,7 @@
-﻿#include "SDL.h"
+﻿//
+//
+// ---------[  INCLUDE START  ]---------
+#include "SDL.h"
 #undef main
 #include <iostream>
 #include <stdlib.h>
@@ -8,45 +11,72 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <SDL_image.h>
+#include <mmsystem.h>
 
-#define WINDOW_WIDTH 750
-#define WINDOW_HEIGHT 750
+#pragma comment(lib, "winmm.lib")
+// ----------[  INCLUDE END  ]----------
 
-//don't do this, this is just an example
-SDL_Renderer* renderer;
-SDL_Window* window;
-bool isRunning;
-bool fullscreen;
-void handleEvents();
-void update();
-void render();
 
-void reset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* playableBoard, int nbBomb, SDL_Renderer* renderer);
-void printNumbers(int clue);
-void printBoard(int* board, int size);
-int playVerif(int* trappedBoard, int* playableBoard, int x, int y, int flag, int size, int nbBomb);
-void showArea(int* trappedBoard, int* playableBoard, int size);
-void bombCreation(int* trappedBoard, int x, int y, int size, int nbBomb);
-int play(int* trappedBoard, int* playableBoard, int size, int nbBomb);
-void boardCreation(int* trappedBoard, int* playableBoard);
-void prePlay(int* trappedBoard, int* playableBoard, int size, int nbBomb);
-void showMine(int* trappedBoard, int* playableBoard, int size);
-int main();
+
+// ----------[  SDL F. START  ]----------
+void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb);
+int SDLRightClickEvent(int* trappedBoard, int* playableBoard, int size, int SQUARE_SIZE, int x, int y, int win, SDL_Rect rect, SDL_Surface* imageB1[], SDL_Surface* imageB2[], int flagAnswer, int nbBomb, SDL_Renderer* renderer);
+int SDLMine(int* trappedBoard, int size, int SQUARE_SIZE, int x, int y, int loose, SDL_Surface* imageB1[], SDL_Surface* imageB2[], SDL_Renderer* renderer);
+void SDLNumbers(int* playableBoard, int size, int SQUARE_SIZE, SDL_Rect rect, int x, int y, int flagAnswer, SDL_Renderer* renderer, SDL_Surface* imageB1[], SDL_Surface* imageB2[]);
+void SDLCheckWinLose(int loose, int size, int win, int SQUARE_SIZE, SDL_Surface* gameOver, SDL_Surface* winImg, SDL_Renderer* renderer);
+void SDLReset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* playableBoard, int nbBomb, SDL_Renderer* renderer);
+void SDLSound(const char* filename);
+// -----------[  SDL F. END  ]-----------
+
+
+
+// --------[  COLORS F. START  ]---------
 void red();
 void white();
 void green();
 void cyan();
 void yellow();
+void magenta();
 void blue();
 void setColor(int* board, int i);
+// ---------[  COLORS F. END  ]----------
 
+
+
+// ---------[  MAIN F. START  ]---------
+int isInt();
+void printNumbers(int clue);
+void bombCreation(int* trappedBoard, int x, int y, int size, int nbBomb);
+void showArea(int* trappedBoard, int* playableBoard, int size);
+void showMine(int* trappedBoard, int* playableBoard, int size);
+void prePlay(int* trappedBoard, int* playableBoard, int size, int nbBomb);
+int play(int* trappedBoard, int* playableBoard, int size, int nbBomb);
+void printBoard(int* board, int size);
+int playVerif(int* trappedBoard, int* playableBoard, int x, int y, int flag, int size, int nbBomb);
+// ----------[  MAIN F. END  ]---------
+
+
+
+// ----------[  MAIN START ]-----------
+int main();
+// -----------[  MAIN END  ]-----------
+
+
+
+
+
+
+
+
+
+
+// ----------[  SDL START  ]----------
 
 void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 	int SQUARE_SIZE = 60;
 
 	SDL_Window* window = NULL;
 	SDL_Renderer* renderer = NULL;
-	//bool board[WINDOW_WIDTH / SQUARE_SIZE][WINDOW_HEIGHT / SQUARE_SIZE] = { 0 };
 
 	// Initialiser SDL
 	SDL_Init(SDL_INIT_VIDEO);
@@ -68,7 +98,8 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
     SDL_Surface* imageB1[10] = { IMG_Load("Pilier1.bmp"), IMG_Load("Pilier2.bmp"), IMG_Load("Pilier3.bmp"), IMG_Load("Pilier4.bmp"), IMG_Load("Pilier5.bmp"), IMG_Load("Pilier6.bmp"), IMG_Load("Pilier7.bmp"), IMG_Load("Pilier8.bmp"), IMG_Load("flagB2.bmp"), IMG_Load("mineB1.bmp") };
 	SDL_Surface* imageB2[10] = { IMG_Load("Pilier1_2.bmp"), IMG_Load("Pilier2_2.bmp"), IMG_Load("Pilier3_2.bmp"), IMG_Load("Pilier4_2.bmp"), IMG_Load("Pilier5_2.bmp"), IMG_Load("Pilier6_2.bmp"), IMG_Load("Pilier7_2.bmp"), IMG_Load("Pilier8_2.bmp"), IMG_Load("flagB1.bmp"), IMG_Load("mineB2.bmp") };
 
-
+	SDL_Surface* icon = SDL_LoadBMP("logo.bmp");
+	SDL_SetWindowIcon(window, icon);
 
 	// Changer la couleur du fond en blanc
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -97,7 +128,6 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 
 	// Boucle principale
 	SDL_Event event;
-
 	int firstPlay = 0;
 	int flagAnswer = 0;
 	int frameCount = 0;
@@ -107,7 +137,6 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 	int fpsLimit = 60;
 	int loose = 0;
 	int win = 0;
-	bool KEYS[322];
 
 
 
@@ -116,18 +145,21 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 
 		int currentTime = SDL_GetTicks();
 
-        
 
 		if (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				break;
 			}else if ((loose == 1 || win == 2) && event.key.keysym.sym == SDLK_SPACE) {
-                reset(size, SQUARE_SIZE, rect, trappedBoard, playableBoard, nbBomb, renderer);
+                SDLReset(size, SQUARE_SIZE, rect, trappedBoard, playableBoard, nbBomb, renderer);
 				loose = 0;
 				win = 0;
 				firstPlay = 0;
-
 			}
+
+            if (event.key.keysym.sym == SDLK_k){
+                SDLSound("sourisBleu.wav");
+            }
+
 			else if (event.type == SDL_MOUSEBUTTONDOWN) {
 				int x = event.button.x / SQUARE_SIZE + 1;
 				int y = event.button.y / SQUARE_SIZE + 1;
@@ -137,38 +169,14 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 					if (flagAnswer == 1) {
 						rect.x = (x - 1) * SQUARE_SIZE;
 						rect.y = (y - 1) * SQUARE_SIZE;
-						if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13 && (x + y) % 2 == 0) {
-							SDL_Rect dstrect = { (x - 1) * SQUARE_SIZE, (y - 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
-							SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[8]);
-							SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-							SDL_RenderPresent(renderer);
-							playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
-						}
-						else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13) {
-							SDL_Rect dstrect = { (x - 1) * SQUARE_SIZE, (y - 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
-							SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[8]);
-							SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-							SDL_RenderPresent(renderer);
-							playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
-						}
-						else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 12 && (x + y) % 2 == 0) {
-							SDL_SetRenderDrawColor(renderer, 162, 209, 73, 255);
-							SDL_RenderFillRect(renderer, &rect);
-							SDL_RenderPresent(renderer);
-                            playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] = 13;
-						}
-						else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 12) {
-							SDL_SetRenderDrawColor(renderer, 170, 215, 81, 255);
-							SDL_RenderFillRect(renderer, &rect);
-							SDL_RenderPresent(renderer);
-							playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] = 13;
-						}
-						printBoard(playableBoard, size);
-						printBoard(trappedBoard, size);
-					}
-				}
+						
+                        //Right Click event function pour jouer un drapeau
+                        win = SDLRightClickEvent(trappedBoard, playableBoard, size, SQUARE_SIZE, x, y, win, rect, imageB1, imageB2, flagAnswer, nbBomb, renderer);
 
-				else {
+
+					}
+
+				}else {
 					flagAnswer = 0;
 				}
 
@@ -176,9 +184,12 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
 
                 if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13 && event.button.button != SDL_BUTTON_RIGHT && loose == 0 &&  win != 2) {
 
+                    SDLSound("SandstoneMinecraft.wav");
+
                     if (firstPlay == 0) {
                         bombCreation(trappedBoard, x, y, size, nbBomb);
                         firstPlay = 1;
+                        SDLSound("TrumpEtte.wav");
                     }
 
                     win = playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
@@ -186,94 +197,164 @@ void SDL(int size, int* trappedBoard, int* playableBoard, int nbBomb){
                     printBoard(playableBoard, size);
                     printBoard(trappedBoard, size);
 
+                    
                     if (trappedBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 11) {
-                        loose = 1;
-                        for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
-                            for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
-                                if (trappedBoard[(x2 + (y2 - 1) * size) + size] == 11) {
-                                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
-                                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[9]);
-                                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-                                    SDL_RenderPresent(renderer);
-                                }
-                            }
-                        }
+                        loose = SDLMine(trappedBoard, size, SQUARE_SIZE, x, y, loose, imageB1, imageB2, renderer);
                     }
-                    for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
-                        for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
-                            rect.x = x2 * SQUARE_SIZE;
-                            rect.y = y2 * SQUARE_SIZE;
-                            if (playableBoard[(x2 + (y2 - 1) * size) + size] == 10 && flagAnswer == 0) {
-                                if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
 
-                                    SDL_SetRenderDrawColor(renderer, 215, 184, 153, 255);
-                                    SDL_RenderFillRect(renderer, &rect);
-                                    SDL_RenderPresent(renderer);
-                                }
-                                else if (playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
-                                    SDL_SetRenderDrawColor(renderer, 229, 194, 159, 255);
-                                    SDL_RenderFillRect(renderer, &rect);
-                                    SDL_RenderPresent(renderer);
-                                }
-                            }
+                    SDLNumbers(playableBoard, size, SQUARE_SIZE, rect, x, y, flagAnswer, renderer, imageB1, imageB2);
 
-                            for (int i = 0; i < 8; i++)
-                            {
-                                if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] == i + 1) {
-                                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
-                                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[i]);
-                                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-                                    SDL_RenderPresent(renderer);
-                                }
-                                else if (playableBoard[(x2 + (y2 - 1) * size) + size] == i + 1) {
-                                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
-                                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[i]);
-                                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-                                    SDL_RenderPresent(renderer);
-                                }
-                            }
-
-                        }
-                    }
+                    
 				}
-                if (loose == 1){
-					SDL_Rect dstrect = { size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 1.5, size * SQUARE_SIZE / 1.5 };
-					SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, gameOver);
-					SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-					SDL_RenderPresent(renderer);
-				}else if (win == 2) {
-					SDL_Rect dstrect = { size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 1.5, size * SQUARE_SIZE / 1.5 };
-					SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, winImg);
-					SDL_RenderCopy(renderer, texture, NULL, &dstrect);
-					SDL_RenderPresent(renderer);
-				}
+                SDLCheckWinLose(loose, size, win, SQUARE_SIZE, gameOver, winImg, renderer);
 			}
 		}
 
 		previousTime = SDL_GetTicks();
         
-		Sleep((1000 / fpsLimit) - (currentTime - previousTime));
+        
+		SDL_Delay((1000 / fpsLimit) - (currentTime - previousTime));
 
 		frameCount++;
 		if (currentTime > startTime + 1000) {
 			int elapsedTime = currentTime - startTime;
 			fps = ((float)frameCount / elapsedTime) * 1000.0;
-			printf("FPS: %.2f\n", fps);
+			printf("\nFPS: %.2f\n", fps);
 			frameCount = 0;
 			startTime = currentTime;
 		}
-
 	}
 
 	// Lib�rer la m�moire
 	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+    SDL_DestroyWindow(window);
+    for (int i = 0; i < 10; i++)
+    {
+		SDL_FreeSurface(imageB1[i]);
+        SDL_FreeSurface(imageB2[i]);
+    }
 	IMG_Quit();
 	SDL_Quit();
 }
 
-void reset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* playableBoard, int nbBomb, SDL_Renderer* renderer){
-	for (int i = 0; i < size * size; i++) {
+int SDLRightClickEvent(int* trappedBoard, int* playableBoard, int size, int SQUARE_SIZE, int x, int y, int win, SDL_Rect rect, SDL_Surface* imageB1[], SDL_Surface* imageB2[], int flagAnswer, int nbBomb, SDL_Renderer* renderer) {
+	if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13 && (x + y) % 2 == 0) {
+		SDL_Rect dstrect = { (x - 1) * SQUARE_SIZE, (y - 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[8]);
+		SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+		SDL_RenderPresent(renderer);
+		win = playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
+        //SDLSound("AveCesar.wav");
+	}
+	else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 13) {
+		SDL_Rect dstrect = { (x - 1) * SQUARE_SIZE, (y - 1) * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[8]);
+		SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+		SDL_RenderPresent(renderer);
+		win = playVerif(trappedBoard, playableBoard, x, y, flagAnswer, size, nbBomb);
+        //SDLSound("AveCesar.wav");
+	}
+	else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 12 && (x + y) % 2 == 0) {
+		SDL_SetRenderDrawColor(renderer, 162, 209, 73, 255);
+		SDL_RenderFillRect(renderer, &rect);
+		SDL_RenderPresent(renderer);
+		playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] = 13;
+        //SDLSound("PaveCesar.wav");
+	}
+	else if (playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] == 12) {
+		SDL_SetRenderDrawColor(renderer, 170, 215, 81, 255);
+		SDL_RenderFillRect(renderer, &rect);
+		SDL_RenderPresent(renderer);
+		playableBoard[((x - 1) + ((y - 1) - 1) * size) + size] = 13;
+        //SDLSound("PaveCesar.wav");
+	}
+	printBoard(playableBoard, size);
+	printBoard(trappedBoard, size);
+    return win;
+}
+
+int SDLMine(int* trappedBoard, int size, int SQUARE_SIZE, int x, int y,int loose, SDL_Surface* imageB1[], SDL_Surface* imageB2[], SDL_Renderer* renderer) {
+	loose = 1;
+
+	for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
+		for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
+			if (trappedBoard[(x2 + (y2 - 1) * size) + size] == 11 && (x2 + y2) % 2 == 0) {
+				SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+				SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[9]);
+				SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+				SDL_RenderPresent(renderer);
+			}else if (trappedBoard[(x2 + (y2 - 1) * size) + size] == 11) {
+				SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+				SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[9]);
+				SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+				SDL_RenderPresent(renderer);
+			}
+		}
+	}
+    return loose;
+}
+
+void SDLNumbers(int* playableBoard, int size, int SQUARE_SIZE, SDL_Rect rect, int x, int y, int flagAnswer, SDL_Renderer* renderer, SDL_Surface* imageB1[], SDL_Surface* imageB2[]) {
+    for (int x2 = 0; x2 < size * SQUARE_SIZE / SQUARE_SIZE; x2++) {
+        for (int y2 = 0; y2 < size * SQUARE_SIZE / SQUARE_SIZE; y2++) {
+            rect.x = x2 * SQUARE_SIZE;
+            rect.y = y2 * SQUARE_SIZE;
+            if (playableBoard[(x2 + (y2 - 1) * size) + size] == 10 && flagAnswer == 0) {
+                if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
+
+                    SDL_SetRenderDrawColor(renderer, 215, 184, 153, 255);
+                    SDL_RenderFillRect(renderer, &rect);
+                    SDL_RenderPresent(renderer);
+                }
+                else if (playableBoard[(x2 + (y2 - 1) * size) + size] != 13) {
+                    SDL_SetRenderDrawColor(renderer, 229, 194, 159, 255);
+                    SDL_RenderFillRect(renderer, &rect);
+                    SDL_RenderPresent(renderer);
+                }
+            }
+
+            for (int i = 0; i < 8; i++)
+            {
+                if ((x2 + y2) % 2 == 0 && playableBoard[(x2 + (y2 - 1) * size) + size] == i + 1) {
+                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB2[i]);
+                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+                    SDL_RenderPresent(renderer);
+                }
+                else if (playableBoard[(x2 + (y2 - 1) * size) + size] == i + 1) {
+                    SDL_Rect dstrect = { x2 * SQUARE_SIZE, y2 * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE };
+                    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageB1[i]);
+                    SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+                    SDL_RenderPresent(renderer);
+                }
+            }
+
+        }
+    }
+}
+
+void SDLCheckWinLose(int loose, int size, int win, int SQUARE_SIZE, SDL_Surface* gameOver, SDL_Surface* winImg, SDL_Renderer* renderer) {
+    if (loose == 1) {
+        SDL_Rect dstrect = { size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 1.5, size * SQUARE_SIZE / 1.5 };
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, gameOver);
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+		SDL_RenderPresent(renderer);
+		SDLSound("ilsSontFousCesRomains.wav");
+    }
+    else if (win == 2) {
+        SDL_Rect dstrect = { size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 6, size * SQUARE_SIZE / 1.5, size * SQUARE_SIZE / 1.5 };
+        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, winImg);
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+		SDL_RenderPresent(renderer);
+		SDLSound("HaiCesar.wav");
+    }
+}
+
+void SDLReset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* playableBoard, int nbBomb, SDL_Renderer* renderer){
+	
+    SDLSound("totemMinecraft.wav");
+
+    for (int i = 0; i < size * size; i++) {
 		trappedBoard[i] = 10;
 		playableBoard[i] = 13;
 	}
@@ -297,35 +378,19 @@ void reset(int size, int SQUARE_SIZE, SDL_Rect rect, int* trappedBoard, int* pla
 	}
 }
 
-//handles any events that SDL noticed.
-void handleEvents() {
-    //the only event we'll check is the  SDL_QUIT event.
-    SDL_Event event;
-    SDL_PollEvent(&event);
+void SDLSound(const char* filename){
+	wchar_t wfilename[256];
+	MultiByteToWideChar(CP_ACP, 0, filename, -1, wfilename, 256);
 
-
-    switch (event.type) {
-    case SDL_QUIT:
-        isRunning = false;
-        break;
-    default:
-        break;
-    }
+	// Jouer un son
+	PlaySound(wfilename, NULL, SND_FILENAME | SND_ASYNC);
 }
 
-//simple render function
-void render() {
-    SDL_SetRenderDrawColor(renderer, 121, 121, 121, 255);
-    SDL_RenderClear(renderer);
+// ----------[  SDL END   ]----------
 
-    //your stuff to render would typically go here.
-    SDL_RenderPresent(renderer);
-}
 
-//simple update function
-void update() {
-    //if things could update the code would go in here.
-}
+
+// --------[  COLORS START  ]---------
 
 void red() {
     printf("\033[0;31m"); // couleur rouge
@@ -369,6 +434,11 @@ void setColor(int* board, int i) {
         red();
     }
 }
+// --------[  COLORS END  ]---------
+
+
+
+// ----------[  MAIN START  ]---------
 
 int isInt() {
     //V�rifie si l'entr�e est un nombre entier
@@ -613,6 +683,7 @@ int play(int* trappedBoard, int* playableBoard, int size, int nbBomb) {
 
 void printBoard(int* board, int size) {
     int divide = 0;
+    printf("\n");
     for (int i = 0; i < size * size; i++) {
 
         if (i == 0) { // si on est au d�but de la boucle affiche les chiffres indicatifs du haut
@@ -751,6 +822,11 @@ int playVerif(int* trappedBoard, int* playableBoard, int x, int y, int flag, int
     }
 
 }
+// ----------[  MAIN END  ]---------
+
+
+
+// ----------[  MAIN !!!!!!!!!!!  ]---------
 
 int main() {
 
@@ -797,7 +873,15 @@ int main() {
         playableBoard[i] = 13;
     }
 
+
+
+    //Interface Graphique
+
     SDL(size, trappedBoard, playableBoard, nbBomb);
+
+
+
+
 
     // Premi�re fonction pour jouer
 

@@ -86,5 +86,32 @@
     <Image Include="win.bmp">
       <Filter>Fichiers sources</Filter>
     </Image>
+    <Image Include="logo.ico">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="icon1.ico">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="log.bmp">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+    <Image Include="icon3.ico">
+      <Filter>Fichiers de ressources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="son.wav">
+      <Filter>Fichiers sources</Filter>
+    </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DemineurSDL.rc">
+      <Filter>Fichiers de ressources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
