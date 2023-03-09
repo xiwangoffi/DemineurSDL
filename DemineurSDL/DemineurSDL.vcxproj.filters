@@ -89,29 +89,46 @@
     <Image Include="logo.ico">
       <Filter>Fichiers sources</Filter>
     </Image>
-    <Image Include="icon1.ico">
-      <Filter>Fichiers de ressources</Filter>
-    </Image>
-    <Image Include="log.bmp">
-      <Filter>Fichiers de ressources</Filter>
-    </Image>
-    <Image Include="icon3.ico">
-      <Filter>Fichiers de ressources</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Media Include="son.wav">
+    <Image Include="Boom3.bmp">
       <Filter>Fichiers sources</Filter>
-    </Media>
+    </Image>
+    <Image Include="Boom2.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Boom1.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Boom5.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
+    <Image Include="Boom4.bmp">
+      <Filter>Fichiers sources</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="DemineurSDL.rc">
+    <Media Include="..\..\..\Downloads\sourisBleu.wav">
       <Filter>Fichiers de ressources</Filter>
-    </ResourceCompile>
+    </Media>
+    <Media Include="..\..\..\Downloads\totemMinecraft.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
+    <Media Include="trumpEtte.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
+    <Media Include="ilsSontFousCesRomains.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
+    <Media Include="AveCesar.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
+    <Media Include="PaveCesar.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
+    <Media Include="HaiCesar.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
+    <Media Include="StandstoneMinecraft.wav">
+      <Filter>Fichiers de ressources</Filter>
+    </Media>
   </ItemGroup>
 </Project>

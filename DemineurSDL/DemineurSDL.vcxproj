@@ -104,12 +104,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\rboisseau\Desktop\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\rboisseau\Documents\DemineurSDL\DemineurSDL\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\rboisseau\Desktop\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\rboisseau\Documents\DemineurSDL\DemineurSDL\SDL2\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -133,6 +133,11 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Boom1.bmp" />
+    <Image Include="Boom2.bmp" />
+    <Image Include="Boom3.bmp" />
+    <Image Include="Boom4.bmp" />
+    <Image Include="Boom5.bmp" />
     <Image Include="flagB1.bmp" />
     <Image Include="flagB2.bmp" />
     <Image Include="game_over.bmp" />
@@ -160,6 +165,11 @@
   <ItemGroup>
     <Media Include="..\..\..\Downloads\sourisBleu.wav" />
     <Media Include="..\..\..\Downloads\totemMinecraft.wav" />
+    <Media Include="AveCesar.wav" />
+    <Media Include="HaiCesar.wav" />
+    <Media Include="ilsSontFousCesRomains.wav" />
+    <Media Include="PaveCesar.wav" />
+    <Media Include="StandstoneMinecraft.wav" />
     <Media Include="trumpEtte.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
